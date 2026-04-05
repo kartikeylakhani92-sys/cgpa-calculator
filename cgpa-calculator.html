@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CGPA Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F5F5F0;
+    --surface: #FFFFFF;
+    --card: #FFFFFF;
+    --border: rgba(0,0,0,0.09);
+    --border-hover: rgba(0,0,0,0.2);
+    --text: #111110;
+    --text2: #555550;
+    --text3: #999990;
+    --accent: #2563EB;
+    --success: #16A34A;
+    --warning: #D97706;
+    --danger: #DC2626;
+    --info: #0891B2;
+    --success-bg: #F0FDF4;
+    --warning-bg: #FFFBEB;
+    --danger-bg: #FEF2F2;
+    --info-bg: #ECFEFF;
+    --font: 'DM Sans', system-ui, sans-serif;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-lg: 0 4px 16px rgba(0,0,0,0.10);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    padding: 28px 16px 60px;
+  }
+
+  /* ── LAYOUT ── */
+  .shell { max-width: 780px; margin: 0 auto; }
+
+  /* ── HEADER ── */
+  header { margin-bottom: 28px; }
+  .header-inner { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .brand { font-size: 24px; font-weight: 500; letter-spacing: -0.5px; color: var(--text); }
+  .brand span { color: var(--accent); }
+  .brand-sub { font-size: 13px; color: var(--text3); margin-top: 3px; }
+
+  /* ── METRIC CARDS ── */
+  .top-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+  .metric {
+    background: var(--surface); border-radius: var(--radius-lg);
+    border: 1px solid var(--border); padding: 18px 20px;
+    box-shadow: var(--shadow);
+  }
+  .metric-label { font-size: 11px; color: var(--text3); letter-spacing: 0.8px; text-transform: uppercase; font-weight: 500; margin-bottom: 6px; }
+  .metric-val { font-size: 32px; font-weight: 500; color: var(--text); line-height: 1; }
+  .metric-sub { font-size: 12px; color: var(--text3); margin-top: 5px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card); border-radius: var(--radius-lg);
+    border: 1px solid var(--border); padding: 20px 24px;
+    box-shadow: var(--shadow); margin-bottom: 14px;
+  }
+  .card-title { font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 14px; letter-spacing: 0.2px; }
+
+  /* ── SCALE SELECTOR ── */
+  .scale-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .scale-btn {
+    padding: 7px 16px; font-size: 13px; border-radius: 20px;
+    border: 1px solid var(--border); background: var(--bg);
+    color: var(--text2); cursor: pointer; font-family: var(--font);
+    transition: all 0.15s; font-weight: 400;
+  }
+  .scale-btn:hover { border-color: var(--border-hover); color: var(--text); }
+  .scale-btn.active {
+    background: var(--text); color: #fff;
+    border-color: var(--text); font-weight: 500;
+  }
+
+  /* ── GRADE REFERENCE ── */
+  .grade-ref { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
+  .grade-chip {
+    background: var(--bg); border-radius: var(--radius);
+    border: 1px solid var(--border); padding: 8px 12px; text-align: center; min-width: 64px;
+  }
+  .grade-chip .g { font-size: 15px; font-weight: 500; color: var(--text); }
+  .grade-chip .p { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* ── SEMESTER CARDS ── */
+  .sem-card {
+    background: var(--card); border-radius: var(--radius-lg);
+    border: 1px solid var(--border); padding: 20px 24px;
+    box-shadow: var(--shadow); margin-bottom: 14px;
+    transition: box-shadow 0.2s;
+  }
+  .sem-card:hover { box-shadow: var(--shadow-lg); }
+  .sem-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; }
+  .sem-name-input {
+    font-size: 15px; font-weight: 500; border: none; background: transparent;
+    color: var(--text); font-family: var(--font); outline: none; flex: 1;
+    border-bottom: 1.5px solid transparent; transition: border-color 0.15s; padding-bottom: 2px;
+  }
+  .sem-name-input:focus { border-color: var(--accent); }
+  .sem-gpa-badge {
+    font-size: 12px; font-weight: 500; padding: 4px 12px; border-radius: 20px;
+    background: var(--bg); border: 1px solid var(--border); color: var(--text2); white-space: nowrap;
+  }
+  .sem-del-btn {
+    width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border);
+    background: transparent; color: var(--text3); font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-family: var(--font);
+    transition: all 0.15s; flex-shrink: 0;
+  }
+  .sem-del-btn:hover { background: var(--danger-bg); color: var(--danger); border-color: rgba(220,38,38,0.3); }
+
+  /* ── COURSE TABLE ── */
+  .col-labels { display: grid; grid-template-columns: 1fr 88px 100px 32px; gap: 8px; margin-bottom: 6px; padding: 0 2px; }
+  .col-label { font-size: 11px; color: var(--text3); letter-spacing: 0.5px; text-transform: uppercase; font-weight: 500; }
+
+  .course-row { display: grid; grid-template-columns: 1fr 88px 100px 32px; gap: 8px; align-items: center; margin-bottom: 7px; }
+  .course-row input, .course-row select {
+    font-size: 13px; padding: 7px 10px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: var(--bg);
+    color: var(--text); font-family: var(--font); outline: none;
+    width: 100%; transition: border-color 0.15s;
+  }
+  .course-row input:focus, .course-row select:focus { border-color: var(--accent); background: #fff; }
+  .course-row input::placeholder { color: var(--text3); }
+
+  .del-btn {
+    width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border);
+    background: transparent; color: var(--text3); font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; line-height: 1;
+    font-family: var(--font); transition: all 0.15s;
+  }
+  .del-btn:hover { background: var(--danger-bg); color: var(--danger); border-color: rgba(220,38,38,0.3); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    padding: 8px 18px; font-size: 13px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text2); cursor: pointer; font-family: var(--font);
+    font-weight: 500; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { border-color: var(--border-hover); color: var(--text); background: #fff; }
+  .btn-primary { background: var(--text); color: #fff; border-color: var(--text); }
+  .btn-primary:hover { background: #333; color: #fff; border-color: #333; }
+  .btn-danger { color: var(--danger); border-color: rgba(220,38,38,0.25); }
+  .btn-danger:hover { background: var(--danger-bg); border-color: rgba(220,38,38,0.4); }
+  .btn-add-course { font-size: 12px; padding: 6px 14px; color: var(--accent); border-color: rgba(37,99,235,0.25); }
+  .btn-add-course:hover { background: #EFF6FF; color: var(--accent); border-color: rgba(37,99,235,0.5); }
+  .action-row { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+
+  /* ── PROGRESS ── */
+  .progress-section { margin-top: 4px; }
+  .progress-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text3); margin-bottom: 6px; }
+  .progress-bar { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s cubic-bezier(.4,0,.2,1), background 0.4s; }
+
+  .result-badge {
+    display: inline-block; font-size: 13px; font-weight: 500;
+    padding: 6px 16px; border-radius: 20px; margin-top: 14px;
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center; padding: 48px 20px;
+    color: var(--text3); font-size: 15px; line-height: 1.7;
+  }
+  .empty-state .big { font-size: 36px; margin-bottom: 10px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 540px) {
+    .top-row { grid-template-columns: 1fr 1fr; }
+    .top-row .metric:last-child { grid-column: 1 / -1; }
+    .col-labels, .course-row { grid-template-columns: 1fr 70px 84px 28px; }
+    body { padding: 16px 12px 48px; }
+    .sem-card, .card { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header>
+    <div class="header-inner">
+      <div>
+        <div class="brand">CGPA <span>Calculator</span></div>
+        <div class="brand-sub">Track your grades semester by semester</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- METRIC CARDS -->
+  <div class="top-row">
+    <div class="metric">
+      <div class="metric-label">CGPA</div>
+      <div class="metric-val" id="cgpa-val">—</div>
+      <div class="metric-sub" id="cgpa-pct">Add courses to begin</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Total credits</div>
+      <div class="metric-val" id="total-credits">0</div>
+      <div class="metric-sub">credit hours earned</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Standing</div>
+      <div class="metric-val" id="grade-letter">—</div>
+      <div class="metric-sub" id="grade-desc">—</div>
+    </div>
+  </div>
+
+  <!-- SCALE + REFERENCE -->
+  <div class="card">
+    <div class="card-title">Grading scale</div>
+    <div class="scale-row" id="scale-row">
+      <button class="scale-btn active" onclick="setScale(this,'10')">10-point (India)</button>
+      <button class="scale-btn" onclick="setScale(this,'4')">4-point (US/GPA)</button>
+      <button class="scale-btn" onclick="setScale(this,'5')">5-point</button>
+    </div>
+    <div class="grade-ref" id="grade-ref"></div>
+  </div>
+
+  <!-- SEMESTER CARDS -->
+  <div id="semesters"></div>
+
+  <!-- ACTION ROW -->
+  <div class="action-row">
+    <button class="btn btn-primary" onclick="addSemester()">+ Add semester</button>
+    <button class="btn btn-danger" onclick="resetAll()">Reset all</button>
+  </div>
+
+  <!-- PROGRESS CARD -->
+  <div class="card" style="margin-top:20px">
+    <div class="card-title">Overall progress</div>
+    <div class="progress-section">
+      <div class="progress-meta">
+        <span>0</span>
+        <span id="scale-max-label">10</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="cgpa-bar" style="width:0%;background:#2563EB"></div>
+      </div>
+      <div id="result-badge-wrap"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  /* ── SCALE DATA ── */
+  const SCALES = {
+    '10': {
+      max: 10,
+      grades: [
+        { g:'O',  p:10, label:'Outstanding' },
+        { g:'A+', p:9,  label:'Excellent'   },
+        { g:'A',  p:8,  label:'Very Good'   },
+        { g:'B+', p:7,  label:'Good'        },
+        { g:'B',  p:6,  label:'Above Avg'   },
+        { g:'C',  p:5,  label:'Average'     },
+        { g:'P',  p:4,  label:'Pass'        },
+        { g:'F',  p:0,  label:'Fail'        },
+      ]
+    },
+    '4': {
+      max: 4,
+      grades: [
+        { g:'A',  p:4.0, label:'Excellent'  },
+        { g:'A-', p:3.7, label:'Near Excel' },
+        { g:'B+', p:3.3, label:'Very Good'  },
+        { g:'B',  p:3.0, label:'Good'       },
+        { g:'B-', p:2.7, label:'Avg Good'   },
+        { g:'C+', p:2.3, label:'Above Avg'  },
+        { g:'C',  p:2.0, label:'Average'    },
+        { g:'D',  p:1.0, label:'Pass'       },
+        { g:'F',  p:0,   label:'Fail'       },
+      ]
+    },
+    '5': {
+      max: 5,
+      grades: [
+        { g:'A', p:5, label:'Excellent' },
+        { g:'B', p:4, label:'Good'      },
+        { g:'C', p:3, label:'Average'   },
+        { g:'D', p:2, label:'Pass'      },
+        { g:'F', p:0, label:'Fail'      },
+      ]
+    }
+  };
+
+  let currentScale = '10';
+  let semesters = [];
+
+  /* ── SCALE ── */
+  function setScale(btn, scale) {
+    currentScale = scale;
+    document.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('scale-max-label').textContent = SCALES[scale].max;
+    // Reset grades in courses to first valid grade
+    semesters.forEach(sem => {
+      sem.courses.forEach(c => {
+        const valid = SCALES[scale].grades.find(g => g.g === c.grade);
+        if (!valid) c.grade = SCALES[scale].grades[0].g;
+      });
+    });
+    renderGradeRef();
+    renderAll();
+  }
+
+  function renderGradeRef() {
+    const sc = SCALES[currentScale];
+    document.getElementById('grade-ref').innerHTML = sc.grades.map(g =>
+      `<div class="grade-chip">
+        <div class="g">${g.g}</div>
+        <div class="p">${g.p} pts</div>
+      </div>`
+    ).join('');
+  }
+
+  /* ── DATA OPS ── */
+  function addSemester() {
+    const num = semesters.length + 1;
+    semesters.push({
+      id: Date.now(),
+      name: 'Semester ' + num,
+      courses: []
+    });
+    addCourse(semesters.length - 1);
+    renderAll();
+  }
+
+  function removeSemester(si) {
+    semesters.splice(si, 1);
+    renderAll();
+  }
+
+  function addCourse(si) {
+    semesters[si].courses.push({
+      id: Date.now() + Math.random(),
+      name: '',
+      credits: 3,
+      grade: SCALES[currentScale].grades[0].g
+    });
+  }
+
+  function removeCourse(si, ci) {
+    semesters[si].courses.splice(ci, 1);
+    renderAll();
+  }
+
+  function updateField(si, ci, field, val) {
+    if (field === 'credits') {
+      semesters[si].courses[ci][field] = parseFloat(val) || 0;
+    } else {
+      semesters[si].courses[ci][field] = val;
+    }
+    renderAll();
+  }
+
+  function updateSemName(si, val) {
+    semesters[si].name = val;
+  }
+
+  function resetAll() {
+    if (semesters.length && !confirm('Reset everything? This cannot be undone.')) return;
+    semesters = [];
+    renderAll();
+  }
+
+  /* ── CALC ── */
+  function getPoints(grade) {
+    const found = SCALES[currentScale].grades.find(g => g.g === grade);
+    return found ? found.p : 0;
+  }
+
+  function calcSemGPA(courses) {
+    let pts = 0, cr = 0;
+    courses.forEach(c => {
+      if (c.credits > 0) { pts += getPoints(c.grade) * c.credits; cr += c.credits; }
+    });
+    return cr ? pts / cr : null;
+  }
+
+  function calcCGPA() {
+    let pts = 0, cr = 0;
+    semesters.forEach(sem => {
+      sem.courses.forEach(c => {
+        if (c.credits > 0) { pts += getPoints(c.grade) * c.credits; cr += c.credits; }
+      });
+    });
+    return { cgpa: cr ? pts / cr : null, credits: cr };
+  }
+
+  function getStanding(cgpa) {
+    const max = SCALES[currentScale].max;
+    const pct = cgpa / max;
+    if (pct >= 0.90) return { letter: 'O',  desc: 'Outstanding',   color: '#16A34A', bg: '#F0FDF4' };
+    if (pct >= 0.80) return { letter: 'A',  desc: 'Excellent',     color: '#0891B2', bg: '#ECFEFF' };
+    if (pct >= 0.70) return { letter: 'B+', desc: 'Very Good',     color: '#2563EB', bg: '#EFF6FF' };
+    if (pct >= 0.60) return { letter: 'B',  desc: 'Good',          color: '#7C3AED', bg: '#F5F3FF' };
+    if (pct >= 0.50) return { letter: 'C',  desc: 'Average',       color: '#D97706', bg: '#FFFBEB' };
+    if (pct >= 0.40) return { letter: 'P',  desc: 'Pass',          color: '#B45309', bg: '#FEF3C7' };
+    return               { letter: 'F',  desc: 'Below Pass',   color: '#DC2626', bg: '#FEF2F2' };
+  }
+
+  function getBarColor(pct) {
+    if (pct >= 0.8) return '#16A34A';
+    if (pct >= 0.6) return '#2563EB';
+    if (pct >= 0.4) return '#D97706';
+    return '#DC2626';
+  }
+
+  /* ── RENDER ── */
+  function renderAll() {
+    const { cgpa, credits } = calcCGPA();
+    const max = SCALES[currentScale].max;
+
+    // Metrics
+    if (cgpa !== null) {
+      const st = getStanding(cgpa);
+      const pct = cgpa / max;
+      document.getElementById('cgpa-val').textContent = cgpa.toFixed(2);
+      document.getElementById('cgpa-pct').textContent = ((pct * 100).toFixed(1)) + '% of ' + max;
+      document.getElementById('grade-letter').textContent = st.letter;
+      document.getElementById('grade-desc').textContent = st.desc;
+      document.getElementById('cgpa-bar').style.width = (pct * 100).toFixed(1) + '%';
+      document.getElementById('cgpa-bar').style.background = getBarColor(pct);
+      document.getElementById('result-badge-wrap').innerHTML =
+        `<span class="result-badge" style="background:${st.bg};color:${st.color}">${st.desc} &mdash; ${cgpa.toFixed(2)} / ${max}</span>`;
+    } else {
+      document.getElementById('cgpa-val').textContent = '—';
+      document.getElementById('cgpa-pct').textContent = 'Add courses to begin';
+      document.getElementById('grade-letter').textContent = '—';
+      document.getElementById('grade-desc').textContent = '—';
+      document.getElementById('cgpa-bar').style.width = '0%';
+      document.getElementById('result-badge-wrap').innerHTML = '';
+    }
+    document.getElementById('total-credits').textContent = credits;
+
+    // Semesters
+    const sc = SCALES[currentScale];
+    const gradeOpts = sc.grades.map(g =>
+      `<option value="${g.g}">${g.g} &mdash; ${g.p}pts</option>`
+    ).join('');
+
+    const container = document.getElementById('semesters');
+
+    if (!semesters.length) {
+      container.innerHTML = `<div class="empty-state">
+        <div class="big">📋</div>
+        Click <strong>"+ Add semester"</strong> to get started.<br/>
+        Add your courses, credits and grades to calculate your CGPA.
+      </div>`;
+      return;
+    }
+
+    container.innerHTML = semesters.map((sem, si) => {
+      const sgpa = calcSemGPA(sem.courses);
+      const gradeOptionsSelected = sc.grades.map(g =>
+        `<option value="${g.g}">${g.g} &mdash; ${g.p}pts</option>`
+      ).join('');
+
+      const coursesHTML = sem.courses.map((c, ci) => {
+        const opts = sc.grades.map(g =>
+          `<option value="${g.g}"${g.g === c.grade ? ' selected' : ''}>${g.g} &mdash; ${g.p}pts</option>`
+        ).join('');
+        return `<div class="course-row">
+          <input
+            type="text"
+            placeholder="Subject name (e.g. Maths)"
+            value="${escHtml(c.name)}"
+            oninput="updateField(${si},${ci},'name',this.value)"
+          />
+          <input
+            type="number"
+            min="0" max="20" step="0.5"
+            value="${c.credits}"
+            oninput="updateField(${si},${ci},'credits',this.value)"
+          />
+          <select onchange="updateField(${si},${ci},'grade',this.value)">${opts}</select>
+          <button class="del-btn" onclick="removeCourse(${si},${ci})" title="Remove course">×</button>
+        </div>`;
+      }).join('');
+
+      return `<div class="sem-card">
+        <div class="sem-header">
+          <input
+            class="sem-name-input"
+            value="${escHtml(sem.name)}"
+            onchange="updateSemName(${si},this.value)"
+            title="Click to rename"
+          />
+          <span class="sem-gpa-badge">
+            Sem GPA: ${sgpa !== null ? sgpa.toFixed(2) : '—'}
+          </span>
+          <button class="sem-del-btn" onclick="removeSemester(${si})" title="Remove semester">×</button>
+        </div>
+        <div class="col-labels">
+          <div class="col-label">Subject</div>
+          <div class="col-label">Credits</div>
+          <div class="col-label">Grade</div>
+          <div class="col-label"></div>
+        </div>
+        ${coursesHTML}
+        <div style="margin-top:12px">
+          <button class="btn btn-add-course" onclick="addCourse(${si});renderAll()">+ Add subject</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /* ── INIT ── */
+  renderGradeRef();
+  addSemester();
+</script>
+</body>
+</html>
